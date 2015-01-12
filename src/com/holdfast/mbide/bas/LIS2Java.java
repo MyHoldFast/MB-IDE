@@ -22,6 +22,8 @@ public class LIS2Java implements Constants {
     private int variableCount = 0;
     private String mainCode = "";
     private boolean equalsBracket = false;
+    private boolean notEquals = false;
+    private boolean NOT = false;
     private boolean elseGoto = false;
     private boolean Goto = false;
 
@@ -97,6 +99,8 @@ public class LIS2Java implements Constants {
      private final byte tok/ = 64;
      private final byte tok^ = 65;*/
     private final byte tokPLUS = 60;
+    private final byte tokMINUS = 61;
+    // private final byte tokMINUS2 = 62;
     private final byte tokBITAND = 66;
     private final byte tokBITOR = 67;
     private final byte tokBITXOR = 68;
@@ -515,16 +519,18 @@ public class LIS2Java implements Constants {
         return startPos - initPos;
     }
 
-    private int parseRValue(int linepos, int lexpos) {
+    private int parseRValue(int linepos, int lexpos, boolean add) {
 
         for (int i = lexpos + 1; i < getLexLen(linepos); i++) {
             lexpos = i;
             if (getType(linepos, i).equals(TYPE_STRING) || getType(linepos, i).equals(TYPE_INTEGER) || getType(linepos, i).equals(TYPE_FLOAT)) {
-                mainCode += getLex(linepos, i);
+                if (add) {
+                    mainCode += getLex(linepos, i);
+                }
                 lexpos++;
                 if (getLexLen(linepos) > i + 1) {
                     if (!getLex(linepos, i + 1).equals("+") && !getLex(linepos, i + 1).equals(",") && !getLex(linepos, i + 1).equals("-") && !getLex(linepos, i + 1).equals("/") && !getLex(linepos, i + 1).equals("*")) {
-                        /// break;
+                        break;
                     }
                 } else {
                     break;
@@ -533,7 +539,9 @@ public class LIS2Java implements Constants {
             if (getType(linepos, i).equals(TYPE_VARIABLE)) {
                 for (int ii = 0; ii < vars.size(); ii++) {
                     if (getLex(linepos, lexpos).equals(vars.get(ii))) {
-                        mainCode += ((String) varsdiff.get(ii)).toLowerCase();
+                        if (add) {
+                            mainCode += ((String) varsdiff.get(ii)).toLowerCase();
+                        }
                         lexpos++;
                     }
                 }
@@ -543,8 +551,7 @@ public class LIS2Java implements Constants {
                     break;
                 }
 
-                System.err.println(getLex(linepos, i));
-
+                // System.err.println(getLex(linepos, i));
                 if (!getLex(linepos, i).equals("(") && !getLex(linepos, i).equals(")")) {
                     lexpos = parseCommand(indexInArray(ops, getLex(linepos, i)), linepos, i);
                     i = lexpos;
@@ -557,6 +564,7 @@ public class LIS2Java implements Constants {
     }
 
     private int parseCommand(int keyword, int linepos, int lexpos) {
+        String nextLex = "";
         switch (keyword) {
             case tokOPS:
                 mainCode += ";\n";
@@ -567,13 +575,9 @@ public class LIS2Java implements Constants {
             case tokEQUALS:
                 //mainCode += (ifEnded) ? "= " : "== ";
                 if (!ifEnded) {
-                    if (getType(linepos, lexpos - 1).equals(TYPE_VARIABLE)) {
-                        if (getLex(linepos, lexpos - 1).endsWith("$")) {
-                            mainCode += ".equals(";
-                            equalsBracket = true;
-                        } else {
-                            mainCode += " == ";
-                        }
+                    if (getType(linepos, lexpos - 1).equals(TYPE_VARIABLE) && getLex(linepos, lexpos - 1).endsWith("$")) {
+                        mainCode += ".equals(";
+                        equalsBracket = true;
                     } else {
                         mainCode += " == ";
                     }
@@ -582,10 +586,19 @@ public class LIS2Java implements Constants {
                 }
                 break;
             case tokNOTEQUALS:
-                mainCode += "!=";
+                if (getType(linepos, lexpos - 1).equals(TYPE_VARIABLE) && getLex(linepos, lexpos - 1).endsWith("$")) {
+                    mainCode += ".equals(";
+                    equalsBracket = true;
+                    notEquals = true;
+                } else {
+                    mainCode += " != ";
+                }
                 break;
             case tokPLUS:
                 mainCode += "+";
+                break;
+            case tokMINUS:
+                mainCode += "-";
                 break;
             case tokSTOP:
                 mainCode += "_halt()";
@@ -594,7 +607,7 @@ public class LIS2Java implements Constants {
                 mainCode += "(";
                 break;
             case tokRIGHTBRACKET:
-                System.err.println("left bracket");
+                //  System.err.println("left bracket");
                 mainCode += ")";
                 break;
             case tokPOP:
@@ -628,13 +641,13 @@ public class LIS2Java implements Constants {
                 break;
             case tokSLEEP:
                 mainCode += "_delay(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
 
                 break;
             case tokPRINT:
                 mainCode += "System.out.println(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokREM:
@@ -647,56 +660,56 @@ public class LIS2Java implements Constants {
             case tokTHEN:
                 break;
             case tokCLS:
-                mainCode += "clearCanvas()";
+                mainCode += "_CLS()";
                 break;
             case tokPLOT:
                 mainCode += "_plot";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokDRAWLINE:
                 mainCode += "_drawLine(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokFILLRECT:
                 mainCode += "_fillRect(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokDRAWRECT:
                 mainCode += "_drawRect(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokFILLROUNDRECT:
                 mainCode += "_fillRoundRect(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokDRAWROUNDRECT:
                 mainCode += "_drawRoundRect(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokFILLARC:
                 mainCode += "_fillArc(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokDRAWARC:
                 mainCode += "_drawArc(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokDRAWSTRING:
                 mainCode += "_drawText(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokSETCOLOR:
                 mainCode += "_setColor(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokBLIT:
@@ -782,21 +795,47 @@ public class LIS2Java implements Constants {
             case tokBITXOR:
                 break;
             case tokNOT:
+                mainCode += "!(";
+                NOT = true;
                 break;
             case tokAND:
+                if (equalsBracket) {
+                    mainCode += ")";
+                    equalsBracket = false;
+                }
+                if (notEquals) {
+                    mainCode += " == false";
+                    notEquals = false;
+                }
+                if (NOT) {
+                    mainCode += ")";
+                    NOT = false;
+                }
                 mainCode += " && ";
                 break;
             case tokOR:
+                if (equalsBracket) {
+                    mainCode += ")";
+                    equalsBracket = false;
+                }
+                if (notEquals) {
+                    mainCode += " == false";
+                    notEquals = false;
+                }
+                if (NOT) {
+                    mainCode += ")";
+                    NOT = false;
+                }
                 mainCode += " || ";
                 break;
             case tokSCREENWIDTH:
                 mainCode += "_getHeight(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokSCREENHEIGHT:
                 mainCode += "_getWidth(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokISCOLOR:
@@ -805,12 +844,12 @@ public class LIS2Java implements Constants {
                 break;
             case tokSTRINGWIDTH:
                 mainCode += "_getStringWidth(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokSTRINGHEIGHT:
                 mainCode += "_getStringHeight(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokLEFT$:
@@ -830,22 +869,76 @@ public class LIS2Java implements Constants {
             case tokVAL:
                 break;
             case tokUP:
+                mainCode += "_Up()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                nextLex = getLex(linepos, lexpos + 1);
+                if (!nextLex.contains(">") && !nextLex.contains("<") && !nextLex.contains("=")) {
+                    mainCode += " != 0";
+                }
                 break;
             case tokDOWN:
+                mainCode += "_Down()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                nextLex = getLex(linepos, lexpos + 1);
+                if (!nextLex.contains(">") && !nextLex.contains("<") && !nextLex.contains("=")) {
+                    mainCode += " != 0";
+                }
                 break;
             case tokLEFT:
+                mainCode += "_Left()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                nextLex = getLex(linepos, lexpos + 1);
+                if (!nextLex.contains(">") && !nextLex.contains("<") && !nextLex.contains("=")) {
+                    mainCode += " != 0";
+                }
                 break;
             case tokRIGHT:
+                mainCode += "_Right()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                nextLex = getLex(linepos, lexpos + 1);
+                if (!nextLex.contains(">") && !nextLex.contains("<") && !nextLex.contains("=")) {
+                    mainCode += " != 0";
+                }
                 break;
             case tokFIRE:
+                mainCode += "_Fire()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                nextLex = getLex(linepos, lexpos + 1);
+                if (!nextLex.contains(">") && !nextLex.contains("<") && !nextLex.contains("=")) {
+                    mainCode += " != 0";
+                }
                 break;
             case tokGAMEA:
+                mainCode += "_GameA()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                nextLex = getLex(linepos, lexpos + 1);
+                if (!nextLex.contains(">") && !nextLex.contains("<") && !nextLex.contains("=")) {
+                    mainCode += " != 0";
+                }
                 break;
             case tokGAMEB:
+                mainCode += "_GameB()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                nextLex = getLex(linepos, lexpos + 1);
+                if (!nextLex.contains(">") && !nextLex.contains("<") && !nextLex.contains("=")) {
+                    mainCode += " != 0";
+                }
                 break;
             case tokGAMEC:
+                mainCode += "_GameC()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                nextLex = getLex(linepos, lexpos + 1);
+                if (!nextLex.contains(">") && !nextLex.contains("<") && !nextLex.contains("=")) {
+                    mainCode += " != 0";
+                }
                 break;
             case tokGAMED:
+                mainCode += "_GameD()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                nextLex = getLex(linepos, lexpos + 1);
+                if (!nextLex.contains(">") && !nextLex.contains("<") && !nextLex.contains("=")) {
+                    mainCode += " != 0";
+                }
                 break;
             case tokDAYS:
                 break;
@@ -931,25 +1024,25 @@ public class LIS2Java implements Constants {
                 break;
             case tokGELWIDTH:
                 mainCode += "_getImageWidth(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokGELHEIGHT:
                 mainCode += "_getImageHeight(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokPLAYWAV:
                 break;
             case tokINKEY:
-                System.err.println("here");
-                mainCode += "inkey(";
-                lexpos = parseRValue(linepos, lexpos);
-                mainCode += ")";
+                // System.err.println("here");
+                mainCode += "_INKEY()";
+                lexpos = parseRValue(linepos, lexpos, false);
+                //mainCode += ")";
                 break;
             case tokSELECT:
                 mainCode += "select(new String[]{";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += "})";
                 break;
             case tokALERT:
@@ -973,7 +1066,7 @@ public class LIS2Java implements Constants {
                 break;
             case tokRAND:
                 mainCode += "rand(";
-                lexpos = parseRValue(linepos, lexpos);
+                lexpos = parseRValue(linepos, lexpos, true);
                 mainCode += ")";
                 break;
             case tokALPHAGEL:
@@ -1025,9 +1118,8 @@ public class LIS2Java implements Constants {
         }
 
         mainCode += "\nstatic void run(int l) {\n"
-                + "bombom:\n"
                 + "while (true) {\n"
-                + "switch (l) {\n";
+                + " switch (l) {\n";
         line:
         for (int currsLine = 0; currsLine < lines.size(); currsLine++) {
             boolean notnull = false;
@@ -1081,9 +1173,18 @@ public class LIS2Java implements Constants {
                             continue;
                         } else if (getLex(currsLine, currLex).equals("THEN")) {
                             ifEnded = true;
+
                             if (equalsBracket) {
                                 mainCode += ")";
                                 equalsBracket = false;
+                            }
+                            if (notEquals) {
+                                mainCode += " == false";
+                                notEquals = false;
+                            }
+                            if (NOT) {
+                                mainCode += ")";
+                                NOT = false;
                             }
                             mainCode += ") {\n";
                             continue;
