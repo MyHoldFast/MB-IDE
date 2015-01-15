@@ -12,14 +12,10 @@ public interface Constants {
             TYPE_ARRAY_BYTE = "ArrayByte",
             TYPE_INTEGER = "Integer",
             TYPE_FLOAT = "Float",
-            VAR_VAR = "Var",
             VAR_ARRAY = "Array";
-    
 
     static final String[] small = new String[]{"", "", "RET", "", "", "", "", "", "", "", "GT", "GS", "SL", "PR", "", "", "", "TH", "", "", "DL", "FR", "DR", "FRR", "DRR", "FA", "DA", "DS", "SC", "", "", "", "", "", "IN", "", "", "", "", "DEL", "", "TR", "OP", "CL", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "SCW", "SCH", "", "", "STW", "STH", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "EF", "GF", "CF", "DF", "MSF", "", "", "", "", "", "", "", "", "", "", "", "", "PR", "IN", "", "GG", "DG", "SG", "SM", "SH", "", "", "GL", "GW", "GH",
-        // ******** added by Mumey***********
         "PW", "PT", "IK", "SEL", "AL", "SF", "MA", "MI", "MR", "", "ES",
-        //********    added 02.2013    ***********
         "RE", "SS", "", "AG", "CAG", "PFR", "", "", "MKDIR", "PP", "PD", "PH", "PX", "PY"};
 
     static final String[] ops = {" STOP ", " POP ", " RETURN ", " END ", " NEW ", " RUN ", " DIR ", " DEG ", " RAD ", " BYE ", " GOTO ",
