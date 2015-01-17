@@ -431,7 +431,7 @@ public class LIS2Java implements Constants {
                 }
 
                 if (nextchar != '(') {
-                    if (!invec(vars, op)) {                      
+                    if (!invec(vars, op)) {
                         vars.add(op);
                         String opdiff = op;
                         String type = op.substring(op.length() - 1);
@@ -579,29 +579,6 @@ public class LIS2Java implements Constants {
                     }
                 }
 
-                if (getType(linepos, i).equals(VAR_ARRAY)) {
-                    /*
-                   ЗДЕСЬ КАРОЧ НАКОСЯПОРЕНО ЧТО ПИЗДЕЦ
-                    */
-                    for (int ii = 0; ii < vardim.size(); ii++) {
-                        if (getLex(linepos, lexpos).equals(vardim.get(ii))) {
-                            mainCode += ((String) dimdiff.get(ii)).toLowerCase() + "[";
-                            lexpos = parseDIMValue(linepos, lexpos);
-                            mainCode += "]";
-                            //lexpos++;
-                            i = lexpos;
-                            if (getLexLen(linepos) > i) {
-                                if (!getLex(linepos, i).equals("-") && !getLex(linepos, i).equals("+") && !getLex(linepos, i).equals("*") && !getLex(linepos, i).equals("/") && !getLex(linepos, i).equals("^")) {
-                                    
-                                    num--;
-                                    break;
-                                }
-                            }
-                            
-                        }
-                    }
-                }
-
                 if (getType(linepos, i).equals(TYPE_CONSTANT)) {
                     if (getLex(linepos, i).equals(":")) {
                         break;
@@ -616,6 +593,27 @@ public class LIS2Java implements Constants {
                         num--;
                     }
                 }
+
+                if (getType(linepos, i).equals(VAR_ARRAY)) {
+
+                    for (int ii = 0; ii < vardim.size(); ii++) {
+                        if (getLex(linepos, lexpos).equals(vardim.get(ii))) {
+                            mainCode += ((String) dimdiff.get(ii)).toLowerCase() + "[";
+                            lexpos = parseRValue(linepos, lexpos, 1) + 1;
+                            mainCode += "]";
+                            i = lexpos;
+                            i--;
+
+                            if (getLexLen(linepos) > i) {
+                                if (!getLex(linepos, i).equals("-") && !getLex(linepos, i).equals("+") && !getLex(linepos, i).equals("*") && !getLex(linepos, i).equals("/") && !getLex(linepos, i).equals("^")) {
+                                    num--;
+                                }
+                            }
+
+                        }
+                    }
+                }
+
             }
         } catch (Exception e) {
             //  System.err.println(e.getMessage());
@@ -686,7 +684,7 @@ public class LIS2Java implements Constants {
             case tokUMN:
                 mainCode += "*";
                 break;
-                case tokDIV:
+            case tokDIV:
                 mainCode += "/";
                 break;
             case tokRIGHTBRACKET:
