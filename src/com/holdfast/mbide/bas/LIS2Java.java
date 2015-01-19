@@ -902,12 +902,12 @@ public class LIS2Java implements Constants {
                 mainCode += " || ";
                 break;
             case tokSCREENWIDTH:
-                mainCode += "_getHeight(";
+                mainCode += "_getWidth(";
                 lexpos = parseRValue(linepos, lexpos, 1);
                 mainCode += ")";
                 break;
             case tokSCREENHEIGHT:
-                mainCode += "_getWidth(";
+                mainCode += "_getHeight(";
                 lexpos = parseRValue(linepos, lexpos, 1);
                 mainCode += ")";
                 break;
