@@ -305,7 +305,7 @@ public class LIS2Java implements Constants {
         } catch (Exception e) {
 
         }
-        return null;
+        return "";
     }
 
     private void check(int lineNum) {
@@ -567,8 +567,8 @@ public class LIS2Java implements Constants {
                     }
                 }
                 if (getType(linepos, i).equals(TYPE_VARIABLE)) {
-                    System.err.println(prenum - num + ":" + needArray);
-                    if (needArray != -1 && prenum - num  == needArray) {
+              //      System.err.println(prenum - num + ":" + needArray);
+                    if (needArray != -1 && prenum - num == needArray) {
                         for (int ii = 0; ii < vardim.size(); ii++) {
                             if (getLex(linepos, lexpos).equals(vardim.get(ii))) {
                                 mainCode += ((String) dimdiff.get(ii)).toLowerCase();
@@ -650,7 +650,7 @@ public class LIS2Java implements Constants {
         String nextLex = "";
         switch (keyword) {
             case tokOPS:
-                mainCode += ";\n";
+                mainCode += ";\n                    ";
                 break;
             case tokZPT:
                 mainCode += ",";
@@ -707,7 +707,7 @@ public class LIS2Java implements Constants {
                 mainCode += "/";
                 break;
             case tokRIGHTBRACKET:
-                System.err.print("add )");
+              //  System.err.print("add )");
                 mainCode += ")";
                 break;
             case tokPOP:
@@ -1128,7 +1128,7 @@ public class LIS2Java implements Constants {
                 mainCode += ")";
                 break;
             case tokDATEFORM:
-                 mainCode += "_DateForm(";
+                mainCode += "_DateForm(";
                 needArray = 5;
                 lexpos = parseRValue(linepos, lexpos, 6);
                 mainCode += ")";
@@ -1258,7 +1258,17 @@ public class LIS2Java implements Constants {
                 }
                 break;
             case tokSELECT:
-                mainCode += "select(new String[]{";
+                mainCode += "_SELECT(";
+                lexpos = parseRValue(linepos, lexpos, 1);
+                mainCode += ", new String[]{";
+
+                while (lexpos < getLexLen(linepos) - 1 && !getLex(linepos, lexpos + 1).equals(":")) {
+
+                    lexpos = parseRValue(linepos, lexpos, 1);
+                    if (lexpos < getLexLen(linepos) - 1 && !getLex(linepos, lexpos + 1).equals(":")) {
+                        mainCode += ",";
+                    }
+                }
                 mainCode += "})";
                 break;
             case tokALERT:
@@ -1448,14 +1458,16 @@ public class LIS2Java implements Constants {
                                 mainCode += ((String) dimdiff.get(i)).toLowerCase();
                                 mainCode += "[";
                                 currLex = parseDIMValue(currsLine, currLex);
+
                                 if (currLex >= getLexLen(currsLine)) {
+                                    mainCode += "]";
                                     break;
                                 }
                                 mainCode += "]";
                             }
                         }
                     }
-
+                   // System.out.println(getType(currsLine, currLex));
                     if (getType(currsLine, currLex).equals(TYPE_INTEGER)) {
                         mainCode += Integer.parseInt(getLex(currsLine, currLex));
                     }
