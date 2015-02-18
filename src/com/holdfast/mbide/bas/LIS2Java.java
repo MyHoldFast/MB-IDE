@@ -17,7 +17,7 @@ public class LIS2Java implements Constants {
     private ArrayList lines, lexems, ltype, vars, varsdiff, linelex, linetype, floats, vardim, dimdiff;
     public static HashMap<String, Integer> forMap = new HashMap<String, Integer>();
     private int currLine;
-    private String codeerror;
+    private String codeerror, dataInit = "";
     private boolean containPoint;
     private final boolean mb191 = true;
     private float prev_line;
@@ -625,8 +625,8 @@ public class LIS2Java implements Constants {
                             i = lexpos;
                             i--;
 
-                            if (getLexLen(linepos) > i) {
-                                if (!getLex(linepos, i).equals("-") && !getLex(linepos, i).equals("+") && !getLex(linepos, i).equals("*") && !getLex(linepos, i).equals("/") && !getLex(linepos, i).equals("^")) {
+                            if (getLexLen(linepos) > i + 1) {
+                                if (!getLex(linepos, i + 1).equals("-") && !getLex(linepos, i + 1).equals("+") && !getLex(linepos, i + 1).equals("*") && !getLex(linepos, i + 1).equals("/") && !getLex(linepos, i + 1).equals("^")) {
                                     num--;
                                 }
                             }
@@ -903,10 +903,33 @@ public class LIS2Java implements Constants {
             case tokGET:
                 break;
             case tokDATA:
+                mainCode += "///DATA";
+                dataInit += ("    public static StringTokenizer _data" + getLex(linepos, 0) + " = new StringTokenizer(\"" + getLex(linepos, lexpos + 1).replace("\"", "\\\"") + "\",\",\");\n");
+                lexpos = lexpos + 2;
                 break;
             case tokRESTORE:
+                mainCode += "_data = _data" + getLex(linepos, lexpos + 1) + ";\n";
+                mainCode += "                    _data.clear()";
+                lexpos = lexpos + 2;
                 break;
             case tokREAD:
+                String _rname = getLex(linepos, lexpos + 1);
+                String type = ((String) _rname).substring(((String) _rname).length() - 1);
+                String _vname = "";
+                for (int i = 0; i < vars.size(); i++) {
+                    if (_rname.equals(vars.get(i))) {
+                        _vname = ((String) varsdiff.get(i)).toLowerCase();
+                    }
+                }
+                mainCode += _vname;// += " = _data.nextToken()";
+                if (type.equals("%")) {
+                    mainCode += " = Integer.parseInt(_data.nextToken())";
+                } else if (type.equals("$")) {
+                    mainCode += " = _data.nextToken()";
+                } else {
+                    mainCode += " = Double.parseDouble(_data.nextToken())";
+                }
+                lexpos = lexpos + 2;
                 break;
             case tokBITAND:
                 break;
@@ -1450,7 +1473,7 @@ public class LIS2Java implements Constants {
 
         mainCode += "    public static int _to = 0;\n";
         mainCode += "    public static int _step = 1;\n";
-
+        mainCode += "    public static StringTokenizer _data;\n";
         mainCode += "\n    static void run(int l) {\n"
                 + "        breaks:\n"
                 + "        while (true) {\n"
@@ -1597,6 +1620,7 @@ public class LIS2Java implements Constants {
         mainCode += "            }\n"
                 + "        }\n"
                 + "    }\n";
+        mainCode = dataInit + mainCode;
         System.out.println(mainCode);
     }
 
