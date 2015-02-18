@@ -5,6 +5,7 @@
 package com.holdfast.mbide.bas;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class LIS2Java implements Constants {
 
@@ -14,6 +15,7 @@ public class LIS2Java implements Constants {
     private final String[] func191small = {small[149], small[150], small[151], small[152], small[153], small[154], small[155], small[156], small[157], small[158], small[159], small[160], small[161]};
 
     private ArrayList lines, lexems, ltype, vars, varsdiff, linelex, linetype, floats, vardim, dimdiff;
+    public static HashMap<String, Integer> forMap = new HashMap<String, Integer>();
     private int currLine;
     private String codeerror;
     private boolean containPoint;
@@ -292,7 +294,7 @@ public class LIS2Java implements Constants {
 
         } catch (Exception e) {
         }
-        return null;
+        return "";
     }
 
     private void setType(ArrayList l) {
@@ -567,7 +569,7 @@ public class LIS2Java implements Constants {
                     }
                 }
                 if (getType(linepos, i).equals(TYPE_VARIABLE)) {
-              //      System.err.println(prenum - num + ":" + needArray);
+                    //      System.err.println(prenum - num + ":" + needArray);
                     if (needArray != -1 && prenum - num == needArray) {
                         for (int ii = 0; ii < vardim.size(); ii++) {
                             if (getLex(linepos, lexpos).equals(vardim.get(ii))) {
@@ -707,7 +709,7 @@ public class LIS2Java implements Constants {
                 mainCode += "/";
                 break;
             case tokRIGHTBRACKET:
-              //  System.err.print("add )");
+                //  System.err.print("add )");
                 mainCode += ")";
                 break;
             case tokPOP:
@@ -739,7 +741,7 @@ public class LIS2Java implements Constants {
                 Goto = true;
                 mainCode += "l = ";
                 lexpos = parseRValue(linepos, lexpos, 1);
-                mainCode += "; continue";
+                // mainCode += "; continue";
                 if (ifStarted) {
                     elseGoto = true;
                 }
@@ -841,12 +843,36 @@ public class LIS2Java implements Constants {
                 mainCode += ")";
                 break;
             case tokFOR:
+                String var = getLex(linepos, lexpos + 1);
+                if (forMap.containsKey(var)) {
+                    forMap.remove(var);
+                }
+                forMap.put(var, Integer.parseInt(getLex(linepos + 1, 0)));
                 break;
             case tokTO:
+                mainCode += ";\n                ";
+                mainCode += "_to = ";
+                lexpos = parseRValue(linepos, lexpos, 1);
+                if (getLex(linepos, lexpos).equals("STEP")) {
+                    mainCode += ";\n                ";
+                }
                 break;
             case tokSTEP:
+                mainCode += "_step = ";
                 break;
             case tokNEXT:
+                String _name = "";
+                String _var = getLex(linepos, lexpos + 1);
+                int line = forMap.get(_var);
+                for (int i = 0; i < vars.size(); i++) {
+                    if (_var.equals(vars.get(i))) {
+                        _name = ((String) varsdiff.get(i)).toLowerCase();
+                    }
+                }
+                lexpos = parseRValue(linepos, lexpos, 1);
+                mainCode += " = " + _name + " +_step;\n";
+                mainCode += "                if(" + _name + "<_to + 1) { l = " + line + "; continue; }\n                _step = 1";
+
                 break;
             case tokINPUT:
                 break;
@@ -1422,6 +1448,9 @@ public class LIS2Java implements Constants {
             }
         }
 
+        mainCode += "    public static int _to = 0;\n";
+        mainCode += "    public static int _step = 1;\n";
+
         mainCode += "\n    static void run(int l) {\n"
                 + "        breaks:\n"
                 + "        while (true) {\n"
@@ -1467,7 +1496,7 @@ public class LIS2Java implements Constants {
                             }
                         }
                     }
-                   // System.out.println(getType(currsLine, currLex));
+                    // System.out.println(getType(currsLine, currLex));
                     if (getType(currsLine, currLex).equals(TYPE_INTEGER)) {
                         mainCode += Integer.parseInt(getLex(currsLine, currLex));
                     }
@@ -1552,7 +1581,9 @@ public class LIS2Java implements Constants {
                         mainCode += "\n                    continue;\n";
                     } else {
 
-                        mainCode += "\n                    _halt();\n";
+                        if (!Goto) {
+                            mainCode += "\n                    _halt();\n";
+                        }
 
                     }
                 } else {
